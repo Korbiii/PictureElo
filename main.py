@@ -8,26 +8,19 @@ import random
 from random import randrange
 
 class GUI:
-    Pathlist ={}
-    Eloranking = None
     baseHeight = 500
-    numPictures = None
-    numIterations = 1
-    rightPictureLabel = None
-    leftPictureLabel = None
-    currLeftPos= None
-    currRightPos = None
-    currIterator = 0
-    sequence = []
+    numIterations = 10
+    currIterator = 0 
+    kValue = 32  
 
     def __init__(self):     
-        # self.picture_path = "D:\\_Bilder\\Archiv\\2022\\10\\10_30 Bodensee"
         self.picture_path = filedialog.askdirectory()
         self.Pathlist = glob.glob(self.picture_path+"/*.jpg")  
         self.numPictures = len(self.Pathlist)
         self.Eloranking = [1000] * self.numPictures
         tempSequence = None
         tempSequence = list(range(0,self.numPictures))
+        self.sequence = []
         for i in range(self.numIterations):
             random.shuffle(tempSequence)
             self.sequence = self.sequence+tempSequence    
@@ -82,7 +75,9 @@ class GUI:
                 os.mkdir(destination_folder)
             for file in self.Pathlist:
                 shutil.copy(file, destination_folder)
-            print("Done!")
+            print("Done!")            
+            self.addElotoFile()
+            self.root.destroy()
 
     def on_right_Image_clicked(self,event):        
         self.calculateElo(0,1)
@@ -95,6 +90,8 @@ class GUI:
                 os.mkdir(destination_folder)
             for file in self.Pathlist:
                 shutil.copy(file, destination_folder)
+            self.root.destroy()
+            self.addElotoFile()
             print("Done!")
 
     def calculateElo(self,left,right):
@@ -104,9 +101,20 @@ class GUI:
         self.expectedLeft = self.currEloLeft/(self.currEloLeft+self.currEloRight)  
         self.expectedRight = self.currEloRight/(self.currEloLeft+self.currEloRight)
 
-        self.Eloranking[self.currLeftPos] = self.Eloranking[self.currLeftPos] + 32 * (left-self.expectedLeft)
-        self.Eloranking[self.currRightPos] = self.Eloranking[self.currRightPos] + 32 * (right-self.expectedRight)
+        self.Eloranking[self.currLeftPos] = self.Eloranking[self.currLeftPos] + self.kValue * (left-self.expectedLeft)
+        self.Eloranking[self.currRightPos] = self.Eloranking[self.currRightPos] + self.kValue * (right-self.expectedRight)
         print(self.Eloranking)
+
+    def addElotoFile(self):
+        intEloranking = list(map(int,self.Eloranking))
+        folderpath = self.picture_path + "/ranked"
+        files = os.listdir(folderpath)
+
+        for i,file_name in enumerate(files):
+            old_path = os.path.join(folderpath, file_name)
+            new_name = f"{intEloranking[i]}_{file_name}"
+            new_path = os.path.join(folderpath, new_name)
+            os.rename(old_path, new_path)
 
 
 GUI()
