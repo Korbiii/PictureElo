@@ -3,7 +3,7 @@ import os
 import shutil
 import tkinter as tk
 from tkinter import filedialog
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk,ImageEnhance
 import random
 from random import randrange
 
@@ -41,8 +41,25 @@ class GUI:
         self.leftPictureLabel.pack(side='left')
         
         self.leftPictureLabel.bind("<Button-1>", self.on_left_image_click)
+        self.leftPictureLabel.bind('<Enter>', self.on_enter_left)
+        self.leftPictureLabel.bind('<Leave>',self.on_leave_left)
+
         self.rightPictureLabel.bind("<Button-1>", self.on_right_Image_clicked)
+        self.rightPictureLabel.bind('<Enter>', self.on_enter_right)
+        self.rightPictureLabel.bind('<Leave>',self.on_leave_right)
     
+    def on_enter_left(self,event):
+        self.leftPictureLabel.configure(image=self.newLeftPictureHover)
+
+    def on_leave_left(self,event):
+        self.leftPictureLabel.configure(image=self.newLeftPicture)
+
+    def on_enter_right(self,event):
+        self.rightPictureLabel.configure(image=self.newRightPictureHover)
+
+    def on_leave_right(self,event):
+        self.rightPictureLabel.configure(image=self.newRightPicture)
+
     def newPictures(self):
         self.currLeftPos = self.sequence[self.currIterator]
         self.currRightPos = self.sequence[self.currIterator+1]
@@ -53,6 +70,9 @@ class GUI:
         self.spercent = (self.baseHeight/float(self.newLeftPicture.size[1]))
         self.wsize = int((float(self.newLeftPicture.size[0])*float(self.spercent)))
         self.newLeftPicture= self.newLeftPicture.resize((self.wsize,self.baseHeight), Image.Resampling.LANCZOS)
+        enhancer = ImageEnhance.Brightness(self.newLeftPicture)
+        self.newLeftPictureHover = enhancer.enhance(1.1)
+        self.newLeftPictureHover = ImageTk.PhotoImage(self.newLeftPictureHover)
         self.newLeftPicture = ImageTk.PhotoImage(self.newLeftPicture)
         self.leftPictureLabel.configure(image=self.newLeftPicture)
 
@@ -60,6 +80,9 @@ class GUI:
         self.spercent = (self.baseHeight/float(self.newRightPicture.size[1]))
         self.wsize = int((float(self.newRightPicture.size[0])*float(self.spercent)))
         self.newRightPicture= self.newRightPicture.resize((self.wsize,self.baseHeight), Image.Resampling.LANCZOS)
+        enhancer = ImageEnhance.Brightness(self.newRightPicture)
+        self.newRightPictureHover = enhancer.enhance(1.1)
+        self.newRightPictureHover = ImageTk.PhotoImage(self.newRightPictureHover)
         self.newRightPicture = ImageTk.PhotoImage(self.newRightPicture)
         self.rightPictureLabel.configure(image=self.newRightPicture)
 
