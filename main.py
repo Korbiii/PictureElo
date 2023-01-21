@@ -2,21 +2,71 @@ import glob
 import os
 import shutil
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image, ImageTk,ImageEnhance
 import random
 from random import randrange
 
 class GUI:
-    baseHeight = 500
+    baseHeight = 1000
     numIterations = 10
     currIterator = 0 
-    kValue = 32  
+    kValue = 64 
+    picturesSelected = False 
 
-    def __init__(self):     
+    ctk.set_appearance_mode("Dark")
+    ctk.set_default_color_theme("green")
+
+    def __init__(self): 
+        self.root = ctk.CTk()  
+        
+        self.root.title("PictureElo")
+        self.root.grid_columnconfigure(1, weight=1)
+
+        self.KvalueSlider = ctk.CTkSlider(self.root, from_=32, to=128,command =self.updateKvalue)
+        self.KvalueSlider.set(self.kValue)
+        self.KvalueSlider.grid(row=0,column=0,columnspan=4)
+
+        self.IterationSlider = ctk.CTkSlider(self.root, from_=3, to=12,command =self.updateIterationValue)
+        self.IterationSlider.set(self.numIterations)
+        self.IterationSlider.grid(row=1,column=0,columnspan=4)
+
+        self.KvalueLabel = ctk.CTkLabel(self.root,text="K_Value: "+str(self.kValue))
+        self.KvalueLabel.grid(row=0,column=4)
+
+        self.IterationsLabel = ctk.CTkLabel(self.root,text="Iterations: "+str(self.numIterations))
+        self.IterationsLabel.grid(row=1,column=4)
+
+        self.pathLabel = ctk.CTkLabel(self.root,text="No Pictures Selected")
+        self.pathLabel.grid(row=3,column=0,columnspan=3,pady=5,padx=5)
+
+        self.selectFolderButton = ctk.CTkButton(self.root,text="Choose Pictures Path!",command=self.choosePath)
+        self.selectFolderButton.grid(row=3,column=3,pady=5,padx=5)
+
+        self.startButton = ctk.CTkButton(self.root,text="Start!",command=self.startComparison, state= tk.DISABLED)
+        self.startButton.grid(row=3,column=4,pady=5,padx=5)
+
+        self.root.mainloop()
+        
+    def updateKvalue(self,event):
+         self.kValue = self.KvalueSlider.get()
+         self.KvalueLabel.configure(text="K_Value: "+str(int(self.kValue)))
+
+    def updateIterationValue(self,event):
+         self.numIterations = int(self.IterationSlider.get())
+         self.IterationsLabel.configure(text="Iterations: "+str(self.numIterations))
+
+    def choosePath(self):
         self.picture_path = filedialog.askdirectory()
         self.Pathlist = glob.glob(self.picture_path+"/*.jpg")  
         self.numPictures = len(self.Pathlist)
+        self.pathLabel.configure(text = str(self.numPictures) + " Pictures selected")
+        if self.numPictures>0:
+            self.startButton.configure(state=tk.ACTIVE)
+
+
+    def startComparison(self): 
         self.Eloranking = [1000] * self.numPictures
         tempSequence = None
         tempSequence = list(range(0,self.numPictures))
@@ -24,20 +74,21 @@ class GUI:
         for i in range(self.numIterations):
             random.shuffle(tempSequence)
             self.sequence = self.sequence+tempSequence    
-        self.root = tk.Tk()  
+        
         self.setupGUI() 
         self.newPictures()
-        self.root.mainloop()
+        
 
-    def setupGUI(self):
-        rightPicture = Image.open("testimage.png")
-        rightPicture = ImageTk.PhotoImage(rightPicture)
-        self.rightPictureLabel = tk.Label(self.root, image=rightPicture)
+
+
+    def setupGUI(self):        
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.rightPictureLabel = tk.Label(self.root)
         self.rightPictureLabel.pack(side='right')
 
-        leftPicture = Image.open("testimage.png")
-        leftPicture = ImageTk.PhotoImage(leftPicture)
-        self.leftPictureLabel = tk.Label(self.root, image=leftPicture)
+        self.leftPictureLabel = tk.Label(self.root)
         self.leftPictureLabel.pack(side='left')
         
         self.leftPictureLabel.bind("<Button-1>", self.on_left_image_click)
@@ -126,7 +177,6 @@ class GUI:
 
         self.Eloranking[self.currLeftPos] = self.Eloranking[self.currLeftPos] + self.kValue * (left-self.expectedLeft)
         self.Eloranking[self.currRightPos] = self.Eloranking[self.currRightPos] + self.kValue * (right-self.expectedRight)
-        print(self.Eloranking)
 
     def addElotoFile(self):
         intEloranking = list(map(int,self.Eloranking))
