@@ -9,18 +9,18 @@ import random
 from random import randrange
 
 class GUI:
-    baseHeight = 1000
+    baseHeight = 1200
     numIterations = 10
-    currIterator = 0 
-    kValue = 64 
-    picturesSelected = False 
+    currIterator = 0
+    kValue = 64
+    picturesSelected = False
 
     ctk.set_appearance_mode("Dark")
     ctk.set_default_color_theme("green")
 
-    def __init__(self): 
-        self.root = ctk.CTk()  
-        
+    def __init__(self):
+        self.root = ctk.CTk()
+
         self.root.title("PictureElo")
         self.root.grid_columnconfigure(1, weight=1)
 
@@ -48,7 +48,7 @@ class GUI:
         self.startButton.grid(row=3,column=4,pady=5,padx=5)
 
         self.root.mainloop()
-        
+
     def updateKvalue(self,event):
          self.kValue = self.KvalueSlider.get()
          self.KvalueLabel.configure(text="K_Value: "+str(int(self.kValue)))
@@ -59,29 +59,29 @@ class GUI:
 
     def choosePath(self):
         self.picture_path = filedialog.askdirectory()
-        self.Pathlist = glob.glob(self.picture_path+"/*.jpg")  
+        self.Pathlist = glob.glob(self.picture_path+"/*.jpg")
         self.numPictures = len(self.Pathlist)
         self.pathLabel.configure(text = str(self.numPictures) + " Pictures selected")
         if self.numPictures>0:
             self.startButton.configure(state=tk.ACTIVE)
 
 
-    def startComparison(self): 
+    def startComparison(self):
         self.Eloranking = [1000] * self.numPictures
         tempSequence = None
         tempSequence = list(range(0,self.numPictures))
         self.sequence = []
         for i in range(self.numIterations):
             random.shuffle(tempSequence)
-            self.sequence = self.sequence+tempSequence    
-        
-        self.setupGUI() 
+            self.sequence = self.sequence+tempSequence
+
+        self.setupGUI()
         self.newPictures()
-        
 
 
 
-    def setupGUI(self):        
+
+    def setupGUI(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -90,7 +90,7 @@ class GUI:
 
         self.leftPictureLabel = tk.Label(self.root)
         self.leftPictureLabel.pack(side='left')
-        
+
         self.leftPictureLabel.bind("<Button-1>", self.on_left_image_click)
         self.leftPictureLabel.bind('<Enter>', self.on_enter_left)
         self.leftPictureLabel.bind('<Leave>',self.on_leave_left)
@@ -98,7 +98,7 @@ class GUI:
         self.rightPictureLabel.bind("<Button-1>", self.on_right_Image_clicked)
         self.rightPictureLabel.bind('<Enter>', self.on_enter_right)
         self.rightPictureLabel.bind('<Leave>',self.on_leave_right)
-    
+
     def on_enter_left(self,event):
         self.leftPictureLabel.configure(image=self.newLeftPictureHover)
 
@@ -117,7 +117,7 @@ class GUI:
 
         leftPic = self.Pathlist[self.currLeftPos]
         rightPic = self.Pathlist[self.currRightPos]
-        self.newLeftPicture = Image.open(leftPic)        
+        self.newLeftPicture = Image.open(leftPic)
         self.spercent = (self.baseHeight/float(self.newLeftPicture.size[1]))
         self.wsize = int((float(self.newLeftPicture.size[0])*float(self.spercent)))
         self.newLeftPicture= self.newLeftPicture.resize((self.wsize,self.baseHeight), Image.Resampling.LANCZOS)
@@ -127,7 +127,7 @@ class GUI:
         self.newLeftPicture = ImageTk.PhotoImage(self.newLeftPicture)
         self.leftPictureLabel.configure(image=self.newLeftPicture)
 
-        self.newRightPicture = Image.open(rightPic)        
+        self.newRightPicture = Image.open(rightPic)
         self.spercent = (self.baseHeight/float(self.newRightPicture.size[1]))
         self.wsize = int((float(self.newRightPicture.size[0])*float(self.spercent)))
         self.newRightPicture= self.newRightPicture.resize((self.wsize,self.baseHeight), Image.Resampling.LANCZOS)
@@ -137,7 +137,7 @@ class GUI:
         self.newRightPicture = ImageTk.PhotoImage(self.newRightPicture)
         self.rightPictureLabel.configure(image=self.newRightPicture)
 
-     
+
     def on_left_image_click(self,event):
         self.calculateElo(1,0)
         if self.currIterator < self.numPictures*self.numIterations:
@@ -149,11 +149,11 @@ class GUI:
                 os.mkdir(destination_folder)
             for file in self.Pathlist:
                 shutil.copy(file, destination_folder)
-            print("Done!")            
+            print("Done!")
             self.addElotoFile()
             self.root.destroy()
 
-    def on_right_Image_clicked(self,event):        
+    def on_right_Image_clicked(self,event):
         self.calculateElo(0,1)
         if self.currIterator < self.numPictures*self.numIterations:
             self.newPictures()
@@ -172,7 +172,7 @@ class GUI:
         self.currEloLeft = 10 ** (self.Eloranking[self.currLeftPos]/400)
         self.currEloRight = 10 ** (self.Eloranking[self.currRightPos]/400)
 
-        self.expectedLeft = self.currEloLeft/(self.currEloLeft+self.currEloRight)  
+        self.expectedLeft = self.currEloLeft/(self.currEloLeft+self.currEloRight)
         self.expectedRight = self.currEloRight/(self.currEloLeft+self.currEloRight)
 
         self.Eloranking[self.currLeftPos] = self.Eloranking[self.currLeftPos] + self.kValue * (left-self.expectedLeft)
